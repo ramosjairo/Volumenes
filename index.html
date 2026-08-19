@@ -47,10 +47,12 @@
                 <table>
                     <thead>
                         <tr>
-                            <th style="width: 45%;">Manzana</th>
-                            <th style="width: 55%;">Parcela</th>
-                            <th style="width: 1%; text-align: center; white-space: nowrap;">📜 Area</th>
-                            <th style="width: 1%; text-align: center;"></th>
+                            <th style="width: 20%;">Manzana</th>
+                            <th style="width: 20%;">Parcela</th>
+                            <th style="width: 30%; text-align: center; white-space: nowrap;">Área (m²)</th>
+                            <th style="width: 30%; text-align: center;">Volumen (m³)</th>
+                            <th style="width: 1%;"></th>
+                            <!--th style="width: 25%; text-align: center;"></th-->
                         </tr>
                     </thead>
                     <tbody id="listaVolumenesBody"></tbody>
@@ -184,6 +186,14 @@
                     </div>
                 </div>
 
+                <div class="form-group">
+                <label for="fEsponjamiento">Factor / % Esponjamiento:</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="number" id="fEsponjamiento" name="f_esponjamiento" class="input-control" step="1" min="0" max="100" value="42" oninput="calcularEvidenciasEnVivo()" onchange="calcularEvidenciasEnVivo()">
+                    <span>%</span>
+                </div>
+                </div>
+
 
                 <!-- EVIDENCIAS DE CÁLCULOS -->
                 <fieldset class="fieldset-calc" style="border: 1px dashed #1f4e79; border-radius: 8px; padding: 12px; margin-top: 15px; background-color: #f9fbfd;">
@@ -192,10 +202,11 @@
                 </legend>
                 
                 <div id="resumenPasosCalculo" style="font-size: 0.85rem; color: #333; line-height: 1.5;">
-                    <div><b>Paso 1 (Área Ext. Libre):</b> <span id="lblAext">0.00</span> m²</div>
-                    <div><b>Paso 2 (Neq Exacto / Ajustado):</b> <span id="lblNeqExacto">0.00</span> ➔ <b style="color: #1f4e79;" id="lblNeqFinal">0</b></div>
-                    <div><b>Paso 3 (Volumen Suelto $V_e$):</b> <b style="color: #2e7d32; font-size: 0.95rem;" id="lblVe">0.0</b> m³</div>
-                    <div><b>Paso 4 (Logística Fletes):</b> <span id="lblViajes">0</span> viajes (12 m³)</div>
+                    <div><b>1. Áreas Comunes:</b> <span id="lblAext">0.00</span> m²</div>
+                    <div><b>2. Pisos Equivalentes:</b> <span id="lblNeqExacto">0.00</span> ➔ <b style="color: #1f4e79;" id="lblNeqFinal">0</b></div>
+                    <div><b>3. Volumen Compacto:</b> <span id="lblVc">0.0</span> m³</div>
+                    <div><b>4. Factor Volumétrico:</b> <span id="lblFactorVol">1.42</span>%</div>
+                    <div><b>5. Volumen Suelto:</b> <b style="color: #2e7d32; font-size: 0.95rem;" id="lblVe">0.0</b> m³</div>
                 </div>
                 </fieldset> 
 

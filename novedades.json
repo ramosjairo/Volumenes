@@ -1,12 +1,44 @@
 {
-  "version": "v1.1",
-  "titulo": "🚀 ¡Nueva Versión Instalada (v1.0)!",
-  "fecha": "2026-08-02",
-  "cambios": [
-    "🏗️ Modularización completa.",
-    "⚡ Optimización de rendimiento y reducción drástica en el consumo de datos y memoria",
-    "📋 Daños Post-Sismo: Rediseño del modal de selección rápida de fallas",
-    "⚙️ Gestión de Fallas: Nuevo editor dedicado con caja de texto para edición cómoda",
-    "🖼️ Mejoras visuales en el formulario."
-  ]
+  "version": "1.2.0",
+  "fecha": "2026-08-19",
+  "titulo": "Actualización de Cálculo Dinámico y Mejoras de Interfaz",
+  "novedades": [
+    "Sincronización en tiempo real del factor de esponjamiento (%) sobre el volumen suelto.",
+    "Sobrescritura automática del campo de comentarios al recalcular, evitando duplicaciones de texto.",
+    "Rediseño del panel 'Evidencias de Cálculos' alineado a los 5 pasos estándar.",
+    "Optimización de la tabla principal de registros con proporciones del 25% por columna y encabezados limpios."
+  ],
+  "memoriaTecnicaCalculo": {
+    "descripcion": "Explicación detallada del modelo matemático utilizado para estimar el volumen compacto, suelto y la logística de acarreo.",
+    "pasos": {
+      "paso1_areasComunes": {
+        "nombre": "Área Exterior Libre (A_ext_libre)",
+        "formula": "A_ext_libre = max(0, AreaTerreno - AreaHuella)",
+        "descripcion": "Calcula la superficie descubierta del terreno restando el área proyectada de la edificación del área total de la parcela."
+      },
+      "paso2_pisosEquivalentes": {
+        "nombre": "Número Equivalente de Pisos (Neq)",
+        "formula": "Neq_exacto = (Pisos + Sotanos) * Alfa",
+        "formulaAjustada": "Neq_final = ceil(Neq_exacto)",
+        "descripcion": "Multiplica la suma de niveles (superficiales y subterráneos) por el coeficiente de complejidad del terreno (Alfa). Se redondea hacia arriba al entero superior."
+      },
+      "paso3_volumenCompacto": {
+        "nombre": "Volumen Compactado (Vc)",
+        "formula": "Vc = AreaHuella * Neq_final",
+        "descripcion": "Representa la estimación del volumen consolidado de escombros/material antes de la excavación o demolición."
+      },
+      "paso4_factorVolumetrico": {
+        "nombre": "Factor de Esponjamiento (Fe)",
+        "formula": "Fe = 1 + (PorcentajeEsponjamiento / 100)",
+        "ejemplo": "42% de esponjamiento equivale a un factor de 1.42",
+        "descripcion": "Coeficiente de expansión física del material al ser removido de su estado natural."
+      },
+      "paso5_volumenSuelto": {
+        "nombre": "Volumen Suelto (Vs o Ve)",
+        "formula": "Vs = Vc * Fe",
+        "logisticaFletes": "Viajes = ceil(Vs / 12)",
+        "descripcion": "Determina el volumen final movilizado en camiones de carga (asumiendo capacidad estándar de 12 m³ por viaje)."
+      }
+    }
+  }
 }

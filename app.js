@@ -109,8 +109,9 @@ let inspectoresActuales = [];
 let callesExistentes = new Set();
 
 /* ==========================================================================
-   MOTOR DE CÁLCULO TÉCNICO (Especificación Matemática)
+   LÓGICA DE CÁLCULO DE VOLUMEN (CORREGIDA CON FACTOR DINÁMICO)
    ========================================================================== */
+
 function calcularMetricaVolumen(datos) {
     const A_terreno = parseFloat(datos.aTerreno) || 0;
     const A_huella = parseFloat(datos.aHuella) || 0;
@@ -120,8 +121,9 @@ function calcularMetricaVolumen(datos) {
     const alpha = parseFloat(datos.clasificacionTerreno) || 0.12;
 
     const I_m3 = 0.30;       // Índice de generación (m³/m²)
-    const F_e = 1.40;        // Factor de Esponjamiento (40%)
-    const I_global = I_m3 * F_e; // 0.42 m³/m²
+    const porcEsponjamiento = datos.porcEsponjamiento !== undefined ? parseFloat(datos.porcEsponjamiento) : 42;
+    const F_e = 1 + (porcEsponjamiento / 100); 
+    
     const C_camion = 12.0;   // Capacidad predeterminada del camión (m³)
 
     // Paso 1: Cálculo del Área Exterior Libre
@@ -135,8 +137,9 @@ function calcularMetricaVolumen(datos) {
     const Neq_exacto = (N_p + N_s) + termSotanoExt + termTerrenoLibre;
     const Neq_final = Math.ceil(Neq_exacto);
 
-    // Paso 3: Cálculo del Volumen Total Suelto (Ve)
-    const Ve = A_huella * Neq_final * I_global;
+    // Paso 3: Cálculo del Volumen Compactado (Vc) y Volumen Suelto (Vs / Ve)
+    const Vc = A_huella * Neq_final * I_m3;
+    const Ve = Vc * F_e; // Volumen Suelto (Vs)
 
     // Paso 4: Logística de Transporte (Viajes)
     const N_viajes = Math.ceil(Ve / C_camion);
@@ -145,16 +148,54 @@ function calcularMetricaVolumen(datos) {
         A_ext_libre: A_ext_libre.toFixed(2),
         Neq_exacto: Neq_exacto.toFixed(2),
         Neq_final: Neq_final,
+        Vc: Vc.toFixed(1),
         Ve: Ve.toFixed(1),
         N_viajes: N_viajes,
-        I_global: I_global.toFixed(2)
+        F_e: F_e.toFixed(2),
+        porcEsponjamiento: porcEsponjamiento,
+        alpha: alpha.toFixed(2)
     };
 }
 
+function calcularEvidenciasEnVivo() {
+    // Leer el porcentaje de esponjamiento ingresado (o usar 42 si está vacío)
+    const porcIngresado = parseFloat(document.getElementById("fEsponjamiento")?.value);
+    const porcEsponjamiento = isNaN(porcIngresado) ? 42 : porcIngresado;
+    const factorEsponjamiento = 1 + (porcEsponjamiento / 100);
+
+    const datos = {
+        aTerreno: parseFloat(document.getElementById("aTerreno")?.value) || 0,
+        aHuella: parseFloat(document.getElementById("aHuella")?.value) || 0,
+        nPisos: parseInt(document.getElementById("nPisos")?.value) || 0,
+        nSotanos: parseInt(document.getElementById("nSotanos")?.value) || 0,
+        aSotExt: parseFloat(document.getElementById("aSotExt")?.value) || 0,
+        clasificacionTerreno: document.getElementById("clasificacionTerreno")?.value || "0.12",
+        factorEsponjamiento: factorEsponjamiento,
+        porcEsponjamiento: porcEsponjamiento
+    };
+
+    const calc = calcularMetricaVolumen(datos);
+
+    // Actualización de métricas en pantalla...
+    if (document.getElementById("lblAext")) document.getElementById("lblAext").innerText = calc.A_ext_libre;
+    if (document.getElementById("lblNeqExacto")) document.getElementById("lblNeqExacto").innerText = calc.Neq_exacto;
+    if (document.getElementById("lblNeqFinal")) document.getElementById("lblNeqFinal").innerText = calc.Neq_final;
+    if (document.getElementById("lblVc")) document.getElementById("lblVc").innerText = calc.Vc; // <-- AÑADIDO
+    if (document.getElementById("lblFactorVol")) document.getElementById("lblFactorVol").innerText = calc.porcEsponjamiento !== undefined ? calc.porcEsponjamiento : 42; // <-- AÑADIDO
+    if (document.getElementById("lblVe")) document.getElementById("lblVe").innerText = calc.Ve;
+
+    actualizarComentarioAutomatico(datos, calc);
+}
+
 function generarNotaCampo125(r, calc) {
-    // Genera una cadena formateada restringida estrictamente a <= 125 caracteres
-    const nota = `Parc ${r.aTerreno}m2; Prin (${r.nPisos}P+${r.nSotanos}S)=${r.aHuella}m2, Ext(a=${r.clasificacionTerreno}). Neq=${calc.Neq_final}. Vol=${calc.Ve}m3 (${r.aHuella}x${calc.Neq_final}x${calc.I_global}).`;
-    return nota.length > 125 ? nota.substring(0, 125) : nota;
+    const aTerreno = parseFloat(r.aTerreno) || 0;
+    const nPisos = parseInt(r.nPisos) || 0;
+    const nSotanos = parseInt(r.nSotanos) || 0;
+    const aHuella = parseFloat(r.aHuella) || 0;
+    const alfa = parseFloat(r.clasificacionTerreno) || 0.12;
+    const porc = calc.porcEsponjamiento !== undefined ? calc.porcEsponjamiento : 42;
+
+    return `Ap ${aTerreno} m2 | Ac (${nPisos}P+${nSotanos}S) ${aHuella} m2 | Fe= ${alfa}\nPeq=${calc.Neq_final}P | Vc ${calc.Vc} m3 | Vs (${porc}%) ${calc.Ve} m3;`;
 }
 
 /* ==========================================================================
@@ -422,6 +463,10 @@ function mostrarFormulario(idEdit = null) {
                     btn.classList.toggle('active', btn.getAttribute('data-value') === valorAlfa);
                 });
 
+                if (document.getElementById("fEsponjamiento")) {
+                    document.getElementById("fEsponjamiento").value = r.porcEsponjamiento !== undefined ? r.porcEsponjamiento : 42;
+                }
+
                 document.getElementById("txtComentarios").value = r.comentarios || "";
                 
                 if (r.fotoFrente) {
@@ -435,9 +480,6 @@ function mostrarFormulario(idEdit = null) {
                     document.getElementById("prevRespaldo").closest('.photo-uploader').classList.add('photo-loaded');
                 }
 
-                const calc = calcularMetricaVolumen(r);
-                ultimaNotaGenerada = generarNotaCampo125(r, calc);
-                
                 calcularEvidenciasEnVivo();
             }
         };
@@ -447,8 +489,11 @@ function mostrarFormulario(idEdit = null) {
         document.querySelectorAll('#grupoComplejidad .btn-complejidad').forEach(btn => {
             btn.classList.toggle('active', btn.getAttribute('data-value') === "0.12");
         });
+
+        if (document.getElementById("fEsponjamiento")) {
+            document.getElementById("fEsponjamiento").value = 42;
+        }
         
-        ultimaNotaGenerada = "";
         calcularEvidenciasEnVivo();
     }
 
@@ -589,6 +634,9 @@ function guardarFormulario(e) {
     const aSotExt = parseFloat(document.getElementById("aSotExt").value) || 0;
     const clasificacionTerreno = document.getElementById("clasificacionTerreno").value;
     const comentarios = document.getElementById("txtComentarios").value.trim();
+    
+    const porcIngresado = parseFloat(document.getElementById("fEsponjamiento")?.value);
+    const porcEsponjamiento = isNaN(porcIngresado) ? 42 : porcIngresado;
 
     const fotoFrente = document.getElementById("prevFrente").src.startsWith("data:") ? document.getElementById("prevFrente").src : null;
     const fotoRespaldo = document.getElementById("prevRespaldo").src.startsWith("data:") ? document.getElementById("prevRespaldo").src : null;
@@ -604,6 +652,7 @@ function guardarFormulario(e) {
         nSotanos,
         aSotExt,
         clasificacionTerreno,
+        porcEsponjamiento,
         color: "Verde",
         comentarios,
         fotoFrente,
@@ -665,7 +714,8 @@ function cargarTabla() {
                 tr.innerHTML = `
                     <td class="col-calle" title="${r.calle}">${r.calle}</td>
                     <td>${r.edificio}</td>
-                    <td style="text-align: center; font-weight: bold; color: #2e7d32;">${calc.Ve} m³</td>
+                    <td style="text-align: center; font-weight: bold; color: #2e7d32;">${r.aTerreno}</td>
+                    <td style="text-align: center; font-weight: bold; color: #2e7d32;">${calc.Ve}</td>
                     <td style="text-align: center; padding: 2px;">
                         <button class="btn-dots" onclick="lanzarMenuOpciones(event, ${r.id})">⋮</button>
                     </td>
@@ -683,56 +733,12 @@ function cargarTabla() {
    ACTUALIZACIÓN REACTIVA (EVIDENCIAS + CADENA RESUMIDA AUTOMÁTICA)
    ========================================================================== */
 
-//let ultimaNotaGenerada = "";
-
-function calcularEvidenciasEnVivo() {
-    const datos = {
-        aTerreno: document.getElementById("aTerreno")?.value || 0,
-        aHuella: document.getElementById("aHuella")?.value || 0,
-        nPisos: document.getElementById("nPisos")?.value || 0,
-        nSotanos: document.getElementById("nSotanos")?.value || 0,
-        aSotExt: document.getElementById("aSotExt")?.value || 0,
-        clasificacionTerreno: document.getElementById("clasificacionTerreno")?.value || "0.12"
-    };
-
-    const calc = calcularMetricaVolumen(datos);
-
-    // 1. Actualizar las Evidencias en pantalla
-    if (document.getElementById("lblAext")) document.getElementById("lblAext").innerText = calc.A_ext_libre;
-    if (document.getElementById("lblNeqExacto")) document.getElementById("lblNeqExacto").innerText = calc.Neq_exacto;
-    if (document.getElementById("lblNeqFinal")) document.getElementById("lblNeqFinal").innerText = calc.Neq_final;
-    if (document.getElementById("lblVe")) document.getElementById("lblVe").innerText = calc.Ve;
-    if (document.getElementById("lblViajes")) document.getElementById("lblViajes").innerText = calc.N_viajes;
-
-    // 2. Forzar la actualización directa del comentario
-    actualizarComentarioAutomatico(datos, calc);
-}
-
 function actualizarComentarioAutomatico(datos, calc) {
     const txtArea = document.getElementById("txtComentarios");
     if (!txtArea) return;
 
     const nuevaNota = generarNotaCampo125(datos, calc);
-
-    // Si no se ha guardado una nota previa en el dataset del elemento, la inicializamos
-    if (!txtArea.dataset.ultimaNota) {
-        txtArea.dataset.ultimaNota = "";
-    }
-
-    const notaAnterior = txtArea.dataset.ultimaNota;
-    const valorActual = txtArea.value;
-
-    // Si está vacío, o si el contenido es idéntico a la nota anterior, reemplazamos 100%
-    if (valorActual.trim() === "" || valorActual === notaAnterior) {
-        txtArea.value = nuevaNota;
-    } else if (valorActual.startsWith(notaAnterior)) {
-        // Preservar texto extra que el usuario haya redactado al final
-        const textoExtra = valorActual.substring(notaAnterior.length);
-        txtArea.value = nuevaNota + textoExtra;
-    }
-
-    // Guardar la nueva nota generada en el dataset del DOM
-    txtArea.dataset.ultimaNota = nuevaNota;
+    txtArea.value = nuevaNota;
 }
 
 
