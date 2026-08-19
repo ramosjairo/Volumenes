@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volúmenes escombros</title>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#1e1e24">
+    <link rel="apple-touch-icon" href="./icono-192.png">
+
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+
+    <datalist id="listaCalles"></datalist>
+
+    <div class="app-container">
+        
+        <!-- PANTALLA PRINCIPAL -->
+        <!-- ==========================================
+     VISTA PRINCIPAL: Muestra la tabla de registros y el resumen del día
+     ========================================== -->
+        <div id="viewMain" class="view active">
+            <div class="header">
+                <div class="header-title">
+                    <img src="logo.png" alt="Logo" style="height: 24px; width: auto; object-fit: contain;">
+                    <h2>Volúmenes</h2>
+                </div>
+            </div>
+
+            <!-- Filtro de Fecha Activa -->
+            <div class="filter-section">
+                <label for="filterDate">Día de Trabajo:</label>
+                <input type="date" id="filterDate" onchange="cambiarFechaActiva()">
+            </div>
+
+            <div class="top-actions">
+                <button class="btn btn-success" style="flex: 1;" onclick="compartirOEnviarReporte()">
+                    📤 Compartir Reporte
+                </button>
+                <button class="btn btn-secondary" onclick="confirmarReiniciarDia()" title="Iniciar Nuevo Día">
+                    🔄 Nuevo Día
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 45%;">Manzana</th>
+                            <th style="width: 55%;">Parcela</th>
+                            <th style="width: 1%; text-align: center; white-space: nowrap;">📜 Area</th>
+                            <th style="width: 1%; text-align: center;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaVolumenesBody"></tbody>
+                </table>
+            </div>
+
+            <!-- BARRA DE ACCIONES INFERIOR -->
+            <div class="bottom-actions">
+                <button id="btnDatosCuadrilla" class="btn btn-secondary" style="border-radius: 50%; width: 44px; height: 44px; padding: 0; font-size: 1.2rem; box-shadow: 0 2px 6px rgba(0,0,0,0.15);" title="Datos de cuadrilla (Pulsación Larga)">
+                    👥
+                </button>
+                
+                <button class="btn btn-primary" style="flex-grow: 1; height: 44px;" onclick="intentarNuevaInspeccion()">
+                    ➕ Inspección
+                </button>
+            </div>  
+
+             <!-- AÑADIDO: El footer ahora está afuera y debajo del app-container -->
+        </div>
+
+    <footer class="app-footer">
+        by Jairo Ramos | <span id="app-version-text">...</span>
+    </footer>           
+
+
+        <!-- PANTALLA DE FORMULARIO DE INSPECCIÓN -->
+        <!-- ==========================================
+     VISTA DE FORMULARIO: Pantalla para agregar o editar una inspección
+     ========================================== -->
+        <div id="viewForm" class="view">
+            <div class="header">
+                <h2 id="formTitle">Nuevo Volumen</h2>
+            </div>
+            <form id="inspeccionForm" onsubmit="guardarFormulario(event)">
+                <input type="hidden" id="editId">
+                
+                <!-- Bloque Ubicación -->
+                <fieldset class="form-section">
+                    <legend>Ubicación</legend>
+                    
+                    <!-- Contenedor en fila para Manzana y Parcela -->
+                    <div class="form-row-2col">
+                        <div class="form-group">
+                            <label for="txtCalle">Manzana/Sector</label>
+                            <input type="text" id="txtCalle" list="listaCalles" class="form-control" placeholder="Ej. 0711" required autocomplete="off">
+                            <!--input type="text" id="txtCalle" name="calle" class="input-control" list="listaCalles" placeholder="Ej: 0711" required-->
+                            <datalist id="listaCalles"></datalist>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="txtEdificio">Parcela/Edificación</label>
+                            <!--input type="text" id="txtEdificio" name="edificio" class="input-control" placeholder="Ej: 27" required-->
+                            <input type="text" id="txtEdificio" class="form-control" placeholder="Ej. 27" required autocomplete="off">
+                        </div>
+                    </div>
+
+                    <!-- Nuevo Campo: Nombre -->
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label for="txtNombre">Nombre</label>
+                        <input type="text" id="txtNombre" class="form-control" placeholder="Ej. Quinta San José" autocomplete="off">
+                    </div>
+                </fieldset>
+
+
+                <!-- BLOQUE A: Geometría de la Parcela y Edificación -->
+                <fieldset class="form-section">
+                <legend class="section-title">Geometría de la Parcela y Edificación</legend>
+
+                <div class="form-group">
+                    <label for="aTerreno">Área total del terreno (m²):</label>
+                    <input type="number" id="aTerreno" name="a_terreno" class="input-control" step="0.01" min="0" placeholder="Ej. 500.00" oninput="calcularEvidenciasEnVivo()" onchange="calcularEvidenciasEnVivo()">
+                </div>
+
+                <div class="form-group">
+                    <label for="aHuella">Área de ocupación en planta (m²):</label>
+                    <input type="number" id="aHuella" name="a_huella" class="input-control" step="0.01" min="0" placeholder="Ej. 200.00" oninput="calcularEvidenciasEnVivo()" onchange="calcularEvidenciasEnVivo()">
+                </div>
+
+                <div class="form-group row-2-cols">
+                    <div>
+                    <label for="nPisos">Pisos sobre nivel (Nₚ):</label>
+                    <input type="number" id="nPisos" name="n_pisos" class="input-control" min="0" value="0" oninput="calcularEvidenciasEnVivo()" onchange="calcularEvidenciasEnVivo()">
+                    </div>
+                    <div>
+                    <label for="nSotanos">Número de sótanos (Nₛ):</label>
+                    <input type="number" id="nSotanos" name="n_sotanos" class="input-control" min="0" value="0" oninput="calcularEvidenciasEnVivo()" onchange="calcularEvidenciasEnVivo()">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="aSotExt">Área de sótano extendido fuera de huella (m²) <small>(Opcional)</small>:</label>
+                    <input type="number" id="aSotExt" name="a_sot_ext" class="input-control" step="0.01" min="0" value="0.00" oninput="calcularEvidenciasEnVivo()" onchange="calcularEvidenciasEnVivo()">
+                </div>
+                </fieldset>
+
+                <!-- BLOQUE B: Clasificación Visual del Terreno Exterior -->
+                <fieldset class="form-section">
+                <legend class="section-title">Clasificación del Terreno Exterior</legend>
+
+                <div class="form-group">
+                    <label>Complejidad del terreno libre:</label>
+                    
+                    <!-- Input oculto para preservar la integración con app.js -->
+                    <input type="hidden" id="clasificacionTerreno" name="clasificacion_terreno" value="0.12">
+
+                    <!-- Selector Visual con opciones en un solo toque -->
+                    <div class="selector-complejidad" id="grupoComplejidad">
+                        <button type="button" class="btn-complejidad active" data-value="0.12" onclick="seleccionarComplejidad(this)">
+                            <span class="badge-alfa">α = 0.12</span>
+                            <strong>Liviano</strong>
+                            <small>Patios planos, aceras, grama</small>
+                        </button>
+
+                        <button type="button" class="btn-complejidad" data-value="0.20" onclick="seleccionarComplejidad(this)">
+                            <span class="badge-alfa">α = 0.20</span>
+                            <strong>Moderado</strong>
+                            <small>Canchas, brocales, asfalto</small>
+                        </button>
+
+                        <button type="button" class="btn-complejidad" data-value="0.28" onclick="seleccionarComplejidad(this)">
+                            <span class="badge-alfa">α = 0.28</span>
+                            <strong>Pesado</strong>
+                            <small>Piscinas, sótano ext., muros altos</small>
+                        </button>
+
+                        <button type="button" class="btn-complejidad" data-value="0.30" onclick="seleccionarComplejidad(this)">
+                            <span class="badge-alfa">α = 0.30</span>
+                            <strong>Pesado Superior</strong>
+                            <small>Estructuras de gran envergadura</small>
+                        </button>
+                    </div>
+                </div>
+
+
+                <!-- EVIDENCIAS DE CÁLCULOS -->
+                <fieldset class="fieldset-calc" style="border: 1px dashed #1f4e79; border-radius: 8px; padding: 12px; margin-top: 15px; background-color: #f9fbfd;">
+                <legend style="color: #1f4e79; font-weight: bold; font-size: 0.9rem; padding: 0 6px;">
+                    📐 Evidencias de Cálculos
+                </legend>
+                
+                <div id="resumenPasosCalculo" style="font-size: 0.85rem; color: #333; line-height: 1.5;">
+                    <div><b>Paso 1 (Área Ext. Libre):</b> <span id="lblAext">0.00</span> m²</div>
+                    <div><b>Paso 2 (Neq Exacto / Ajustado):</b> <span id="lblNeqExacto">0.00</span> ➔ <b style="color: #1f4e79;" id="lblNeqFinal">0</b></div>
+                    <div><b>Paso 3 (Volumen Suelto $V_e$):</b> <b style="color: #2e7d32; font-size: 0.95rem;" id="lblVe">0.0</b> m³</div>
+                    <div><b>Paso 4 (Logística Fletes):</b> <span id="lblViajes">0</span> viajes (12 m³)</div>
+                </div>
+                </fieldset> 
+
+
+                <!-- CAMPO COMENTARIOS -->
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <label for="txtComentarios" style="margin-bottom:0;">Comentarios / Observaciones</label>
+                    </div>
+                    
+                    <textarea id="txtComentarios" class="form-control" rows="3" placeholder="Observaciones en campo..." style="resize: vertical;"></textarea>
+                    
+                    <div style="display: flex; justify-content: flex-end; margin-top: 4px;">
+                        <button type="button" class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="copiarComentarios()">
+                            📋 Copiar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- FOTO FACHADA -->
+                <div class="form-group">
+                    <label>Foto de la Fachada</label>
+                    <div class="photo-uploader" onclick="abrirMenuFoto('Frente')">
+                        <span>📸 Capturar/Elegir Fachada</span>
+                        <input type="file" id="fileFrenteCamara" accept="image/*" capture="environment" style="display:none;" onchange="procesarImagen(this, 'prevFrente')" onclick="event.stopPropagation()">
+                        <input type="file" id="fileFrenteGaleria" accept="image/*" style="display:none;" onchange="procesarImagen(this, 'prevFrente')" onclick="event.stopPropagation()">
+                        <img id="prevFrente" class="preview-img" alt="Fachada">
+                    </div>
+                </div>
+
+                <!-- FOTO CERTIFICADO -->
+                <div class="form-group">
+                    <label>Foto de Detalle</label>
+                    <div class="photo-uploader" onclick="abrirMenuFoto('Respaldo')">
+                        <span>📸 Capturar/Elegir Detalle</span>
+                        <input type="file" id="fileRespaldoCamara" accept="image/*" capture="environment" style="display:none;" onchange="procesarImagen(this, 'prevRespaldo')" onclick="event.stopPropagation()">
+                        <input type="file" id="fileRespaldoGaleria" accept="image/*" style="display:none;" onchange="procesarImagen(this, 'prevRespaldo')" onclick="event.stopPropagation()">
+                        <img id="prevRespaldo" class="preview-img" alt="Certificado">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="regresarPrincipal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Guardar</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- PANTALLA: CONFIGURACIÓN / PARÁMETROS GLOBALES -->
+        <!-- ==========================================
+     VISTA DE CONFIGURACIÓN: Parámetros globales y mantenimiento
+     ========================================== -->
+        <div id="viewConfig" class="view">
+            <div class="header">
+                <h2>⚙️ Parámetros Globales</h2>
+            </div>
+            
+            <form id="configForm" onsubmit="guardarConfiguracion(event)">
+                <div class="form-group">
+                    <label for="cfgParroquia">Parroquia</label>
+                    <input type="text" id="cfgParroquia" class="form-control" placeholder="Ej. El Recreo" required autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label for="cfgGrupo">Grupo</label>
+                    <input type="text" id="cfgGrupo" class="form-control" placeholder="Ej. Grupo Central" required autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label for="cfgCoordinador">Coordinador</label>
+                    <input type="text" id="cfgCoordinador" class="form-control" placeholder="Nombre del Coordinador" required autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label>Nómina de Inspectores</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="txtNewInspector" class="form-control" placeholder="Nombre de Inspector" autocomplete="off">
+                        <button type="button" class="btn btn-primary" style="padding: 0 16px; font-size:1.2rem;" onclick="agregarInspectorNavegacion()">+</button>
+                    </div>
+                    <div class="inspector-badge-list" id="lstInspectores"></div>
+                </div>
+
+                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
+                    <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-bottom: 0;">
+                        <input type="checkbox" id="cfgMostrarCertificado" style="width: 18px; height: 18px; cursor: pointer;">
+                        <label for="cfgMostrarCertificado" style="margin-bottom: 0; cursor: pointer; font-weight: 600; font-size: 0.85rem;">Incluir Certificado en Reporte</label>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="regresarPrincipal()">Volver</button>
+                    <button type="submit" class="btn btn-success" style="flex: 1;">Guardar Equipo</button>
+                </div>
+            </form>
+
+            <div style="margin-top: 45px; border-top: 1px dashed #ccc; padding-top: 15px; text-align: center; display: flex; flex-direction: column; gap: 10px;">
+                <button type="button" class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;" onclick="limpiarCatalogoFallas()">
+                    🧹 Limpiar Catálogo de Fallas
+                </button>
+                <button type="button" class="btn btn-danger" style="font-size: 0.8rem; padding: 6px 12px;" onclick="eliminarTodoElHistorialDB()">
+                    ⚠️ Borrar Todo el Historial (Base de Datos)
+                </button>
+            </div>
+        </div>
+
+    </div> <!-- Cierre principal de .app-container -->
+
+   
+
+    <!-- ==========================================
+     MODALES: Contenedores flotantes para interacciones secundarias
+     ========================================== -->
+
+    <!-- MODAL 1: PANTALLA DE SELECCIÓN RÁPIDA (ESTILO IMAGEN 1) -->
+    <div id="modalSeleccionFallas" class="modal" onclick="cerrarModal('modalSeleccionFallas')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span>📋 Daños Post-Sismo</span>
+                <button type="button" class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="abrirModalGestionFallasDesdeSeleccion()">⚙️ Ajustes</button>
+            </div>
+            <div class="modal-body" id="modalSeleccionBody" style="display: flex; flex-direction: column; gap: 8px;">
+                <!-- Generado dinámicamente -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModal('modalSeleccionFallas')">Cancelar</button>
+                <button class="btn btn-primary" onclick="aplicarSeleccionFallas()">Aplicar Selección</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: PANTALLA DE GESTIÓN / EDICIÓN E IMPORTACIÓN (ESTILO IMAGEN 2) -->
+    <div id="modalGestionFallas" class="modal" onclick="cerrarModal('modalGestionFallas')">
+        <div class="modal-content" style="max-width: 90vw !important; height: 85vh !important;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span>⚙️ Gestión de Fallas</span>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="btn-icon" style="font-size: 1.2rem;" onclick="document.getElementById('fileMasterImport').click()" title="Importar Catálogo (TXT/JSON)">📥</button>
+                    <button type="button" class="btn-icon" style="font-size: 1.2rem;" onclick="exportarCatalogoArchivo()" title="Exportar Catálogo (JSON)">📤</button>
+                </div>
+                <input type="file" id="fileMasterImport" accept=".txt,.json,.csv" style="display:none;" onchange="importarCatalogoDesdeArchivo(this)">
+            </div>
+            <div class="modal-body" id="modalGestionBody" style="display: flex; flex-direction: column; gap: 12px; max-height: none !important; flex-grow: 1; overflow-y: auto;">
+                <!-- Generado dinámicamente con opción de añadir y borrar ítems individualmente -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="volverASeleccionFallas()">Volver a Selección</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDICIÓN FALLA (TEXTAREA) -->
+    <div id="modalEditarFalla" class="modal" onclick="cerrarModal('modalEditarFalla')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">✏️ Editar Registro</div>
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 10px;">
+                <textarea id="txtEditFalla" class="form-control" rows="4" style="width: 100%; font-size: 0.85rem; padding: 8px; resize: none;"></textarea>
+                <input type="hidden" id="editFallaCat">
+                <input type="hidden" id="editFallaIdx">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModal('modalEditarFalla')">Cancelar</button>
+                <button class="btn btn-primary" onclick="guardarEdicionFallaModal()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE DETALLES -->
+    <div id="modalDetalles" class="modal" onclick="cerrarModal('modalDetalles')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header" id="detTitle">Detalle</div>
+            <div class="modal-body" id="detBody"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModal('modalDetalles')">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL OPCIONES DE REGISTRO (3 PUNTOS) -->
+    <div id="modalMenu" class="modal" onclick="cerrarModal('modalMenu')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">Opciones de Registro</div>
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 10px;">
+                <p id="menuTargetText" style="font-weight: bold; text-align: center; margin-bottom: 8px; color: #333;"></p>
+                <button class="btn btn-primary" id="btnMenuResumen" style="width: 100%;">👁️ Ver Resumen</button>
+                <button class="btn btn-secondary" id="btnMenuEditar" style="width: 100%;">✏️ Editar Registro</button>
+                <button class="btn btn-danger" id="btnMenuEliminar" style="width: 100%;">🗑️ Eliminar Registro</button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModal('modalMenu')">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL SUBMENÚ DISCRETO: COMPARTIR DATA CUADRILLA -->
+    <div id="modalSincronizacion" class="modal" onclick="cerrarModal('modalSincronizacion')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">📲 Datos de Cuadrilla (Colegas)</div>
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 12px; padding-top: 10px;">
+                <p style="font-size: 0.85rem; color: #555; text-align: center;">Comparte la jornada actual vía WhatsApp o exporta todo el JSON localmente.</p>
+                
+                <button class="btn btn-primary" style="width: 100%; font-size: 0.9rem; background-color: #25D366; border-color: #25D366; color: white;" onclick="exportarJornadaWhatsApp()">
+                    📤 Compartir Reporte Diario
+                </button>
+                
+                <button class="btn btn-secondary" style="width: 100%; font-size: 0.9rem; background-color: #f0f4f8; border: 1px dashed #25D366; color: #128C7E; font-weight: bold;" onclick="importarJornadaPortapapeles()">
+                    📥 Importar Reporte de Colega
+                </button>
+
+                <hr style="border: 0; height: 1px; background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0)); margin: 5px 0;">
+
+                <button class="btn btn-primary" style="width: 100%; font-size: 0.9rem;" onclick="exportarDataJSONPorEmail()">
+                    📥 Exportar Mi Data (.json por Email)
+                </button>
+                
+                <button class="btn btn-secondary" style="width: 100%; font-size: 0.9rem; background-color: #f0f4f8; border: 1px dashed #b0c4de;" onclick="document.getElementById('fileImport').click()">
+                    📤 Importar Data (.json local)
+                </button>
+                <input type="file" id="fileImport" accept=".json" style="display:none;" onchange="importarDataJSON(this)">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModal('modalSincronizacion')">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISOR DE ZOOM PARA FOTOS -->
+    <div id="modalZoom" class="modal-zoom" onclick="cerrarZoom()">
+        <span class="modal-zoom-cerrar" onclick="cerrarZoom()">&times;</span>
+        <img class="modal-zoom-contenido" id="imgZoomed" alt="Inspección Ampliada">
+    </div>
+
+    <!-- Modal de Novedades (Changelog) -->
+    <div id="modalNovedades" class="modal" onclick="cerrarModal('modalNovedades')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header" id="novedadesTitle">🚀 ¡Novedades!</div>
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 10px;">
+                <ul id="novedadesList" style="padding-left: 20px; margin: 0; font-size: 0.9rem; color: #333; line-height: 1.4;">
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="cerrarModal('modalNovedades')" style="width: 100%;">¡Entendido, a trabajar!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL MENU DE CAPTURA DE IMAGEN -->
+    <div id="modalMenuFoto" class="modal-overlay-foto">
+        <div class="modal-menu-foto">
+            <h3>Captura de Imagen</h3>
+            <button class="btn btn-primary" onclick="seleccionarFoto('camara')">📸 Usar Cámara</button>
+            <button class="btn btn-secondary" onclick="seleccionarFoto('galeria')">📁 Elegir de Archivos</button>
+            <button class="btn btn-danger" id="btnMenuEliminarFoto" onclick="seleccionarFoto('eliminar')">🗑️ Eliminar Imagen</button>
+            <button class="btn btn-secondary" style="background:#888; color:#fff;" onclick="cerrarMenuFoto()">❌ Cancelar</button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="./app.js" defer></script> 
+</body>
+</html>

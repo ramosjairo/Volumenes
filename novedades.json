@@ -1,0 +1,12 @@
+{
+  "version": "v1.0",
+  "titulo": "🚀 ¡Nueva Versión Instalada (v1.0)!",
+  "fecha": "2026-08-02",
+  "cambios": [
+    "🏗️ Modularización completa.",
+    "⚡ Optimización de rendimiento y reducción drástica en el consumo de datos y memoria",
+    "📋 Daños Post-Sismo: Rediseño del modal de selección rápida de fallas",
+    "⚙️ Gestión de Fallas: Nuevo editor dedicado con caja de texto para edición cómoda",
+    "🖼️ Mejoras visuales en el formulario."
+  ]
+}
