@@ -1,5 +1,5 @@
 // Incremento de versión a v5.6 para refrescar la caché tras la separación modular
-const CACHE_NAME = 'volumen-cache-v1.0';
+const CACHE_NAME = 'volumen-cache-v1.2.0';
 const ASSETS = [
   './',
   './index.html',
