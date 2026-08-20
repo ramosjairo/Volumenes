@@ -133,17 +133,17 @@
 
                 <div class="form-group row-2-cols">
                     <div>
-                    <label for="nPisos">Pisos sobre nivel (Nₚ):</label>
+                    <label for="nPisos">Pisos sobre nivel:</label>
                     <input type="number" id="nPisos" name="n_pisos" class="input-control" min="0" value="0" oninput="calcularEvidenciasEnVivo()" onchange="calcularEvidenciasEnVivo()">
                     </div>
                     <div>
-                    <label for="nSotanos">Número de sótanos (Nₛ):</label>
+                    <label for="nSotanos">Número de sótanos:</label>
                     <input type="number" id="nSotanos" name="n_sotanos" class="input-control" min="0" value="0" oninput="calcularEvidenciasEnVivo()" onchange="calcularEvidenciasEnVivo()">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="aSotExt">Área de sótano extendido fuera de huella (m²) <small>(Opcional)</small>:</label>
+                    <label for="aSotExt">Área extendida fuera de huella (m²) <small>(Opcional)</small>:</label>
                     <input type="number" id="aSotExt" name="a_sot_ext" class="input-control" step="0.01" min="0" value="0.00" oninput="calcularEvidenciasEnVivo()" onchange="calcularEvidenciasEnVivo()">
                 </div>
                 </fieldset>
@@ -227,7 +227,7 @@
                 </div>
 
                 <!-- FOTO FACHADA -->
-                <div class="form-group">
+                <div class="form-group" style="display: none;">
                     <label>Foto de la Fachada</label>
                     <div class="photo-uploader" onclick="abrirMenuFoto('Frente')">
                         <span>📸 Capturar/Elegir Fachada</span>
@@ -235,10 +235,10 @@
                         <input type="file" id="fileFrenteGaleria" accept="image/*" style="display:none;" onchange="procesarImagen(this, 'prevFrente')" onclick="event.stopPropagation()">
                         <img id="prevFrente" class="preview-img" alt="Fachada">
                     </div>
-                </div>
+                </div> 
 
                 <!-- FOTO CERTIFICADO -->
-                <div class="form-group">
+                <div class="form-group" style="display: none;">
                     <label>Foto de Detalle</label>
                     <div class="photo-uploader" onclick="abrirMenuFoto('Respaldo')">
                         <span>📸 Capturar/Elegir Detalle</span>
@@ -247,6 +247,7 @@
                         <img id="prevRespaldo" class="preview-img" alt="Certificado">
                     </div>
                 </div>
+
 
                 <div style="display: flex; gap: 10px; margin-top: 15px;">
                     <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="regresarPrincipal()">Cancelar</button>

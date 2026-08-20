@@ -1,6 +1,6 @@
 {
-  "version": "1.2.0",
-  "fecha": "2026-08-19",
+  "version": "1.2.1",
+  "fecha": "2026-08-20",
   "titulo": "Actualización de Cálculo Dinámico y Mejoras de Interfaz",
   "novedades": [
     "Sincronización en tiempo real del factor de esponjamiento (%) sobre el volumen suelto.",
