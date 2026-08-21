@@ -130,12 +130,19 @@ function calcularMetricaVolumen(datos) {
     let A_ext_libre = A_terreno - A_huella - A_sot_ext;
     if (A_ext_libre < 0) A_ext_libre = 0;
 
-    // Paso 2: Determinación del Neq Exacto y Redondeo Ceil
+    // Paso 2: Determinación del Neq Exacto y Redondeo por Umbral (> 0.50)
     let termSotanoExt = A_huella > 0 ? (A_sot_ext * N_s) / A_huella : 0;
     let termTerrenoLibre = A_huella > 0 ? (A_ext_libre / A_huella) * alpha : 0;
 
     const Neq_exacto = (N_p + N_s) + termSotanoExt + termTerrenoLibre;
-    const Neq_final = Math.ceil(Neq_exacto);
+
+    // Extraer la parte entera y la parte decimal
+    const parteEntera = Math.floor(Neq_exacto);
+    const parteDecimal = Neq_exacto - parteEntera;
+
+    // Regla: si el decimal es strictly mayor a 0.50, sube al superior, de lo contrario baja
+    const Neq_final = parteDecimal >= 0.50 ? Math.ceil(Neq_exacto) : Math.floor(Neq_exacto);
+    //const Neq_final = Math.ceil(Neq_exacto);
 
     // Paso 3: Cálculo del Volumen Compactado (Vc) y Volumen Suelto (Vs / Ve)
     const Vc = A_huella * Neq_final * I_m3;
