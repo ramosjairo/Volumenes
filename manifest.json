@@ -1,0 +1,23 @@
+{
+  "short_name": "Volumenes",
+  "name": "Sistema de Calculo de Volumenes",
+  "icons": [
+    {
+      "src": "./icono-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icono-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "./",
+  "background_color": "#1e1e24",
+  "theme_color": "#1e1e24",
+  "display": "standalone",
+  "orientation": "portrait"
+}
