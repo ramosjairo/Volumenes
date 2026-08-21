@@ -1,11 +1,10 @@
 {
-  "version": "1.2.1",
+  "version": "v1.3.0",
   "fecha": "2026-08-20",
   "titulo": "Actualización de Cálculo Dinámico y Mejoras de Interfaz",
-  "novedades": [
-    "Sincronización en tiempo real del factor de esponjamiento (%) sobre el volumen suelto.",
-    "Sobrescritura automática del campo de comentarios al recalcular, evitando duplicaciones de texto.",
-    "Rediseño del panel 'Evidencias de Cálculos' alineado a los 5 pasos estándar.",
-    "Optimización de la tabla principal de registros con proporciones del 25% por columna y encabezados limpios."
+  "cambios": [
+    "⚙️ Sincronización en tiempo real del factor de esponjamiento (%) sobre el volumen suelto.",
+    "📋 Sobrescritura automática del campo de comentarios al recalcular, evitando duplicaciones de texto.",
+    "⚡ Rediseño del panel 'Evidencias de Cálculos' alineado a los 5 pasos estándar.",
   ]
 }
