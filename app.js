@@ -11,17 +11,21 @@ function abrirMenuFoto(target) {
     const imgPreview = document.getElementById(prevId);
     const btnEliminar = document.getElementById('btnMenuEliminarFoto');
 
-    if (imgPreview && imgPreview.src && imgPreview.src.startsWith("data:")) {
-        btnEliminar.style.display = "flex";
-    } else {
-        btnEliminar.style.display = "none";
+    if (btnEliminar) {
+        if (imgPreview && imgPreview.src && imgPreview.src.startsWith("data:")) {
+            btnEliminar.style.display = "flex";
+        } else {
+            btnEliminar.style.display = "none";
+        }
     }
 
-    document.getElementById('modalMenuFoto').style.display = 'flex';
+    const modalMenuFoto = document.getElementById('modalMenuFoto');
+    if (modalMenuFoto) modalMenuFoto.style.display = 'flex';
 }
 
 function cerrarMenuFoto() {
-    document.getElementById('modalMenuFoto').style.display = 'none';
+    const modalMenuFoto = document.getElementById('modalMenuFoto');
+    if (modalMenuFoto) modalMenuFoto.style.display = 'none';
 }
 
 function seleccionarFoto(origen) {
@@ -35,6 +39,9 @@ function seleccionarFoto(origen) {
     }
 }
 
+
+
+
 const DB_NAME = "VolumenesEscombrosDB";
 const DB_VERSION = 1;
 let db;
@@ -46,6 +53,11 @@ async function verificarNovedades() {
     const cachedVersion = localStorage.getItem('app_version') || 'v1.0';
     const versionEl = document.getElementById('app-version-text');
     if (versionEl) versionEl.textContent = cachedVersion;
+
+    if (window.location.protocol === 'file:') {
+        console.warn("Ejecución local (file://). Omitiendo verificación de novedades por políticas CORS.");
+        return;
+    }
 
     try {
         const response = await fetch('./novedades.json?v=' + Date.now());
@@ -120,7 +132,7 @@ function calcularMetricaVolumen(datos) {
     const A_sot_ext = parseFloat(datos.aSotExt) || 0;
     const alpha = parseFloat(datos.clasificacionTerreno) || 0.12;
 
-    const I_m3 = 0.30;       // Índice de generación (m³/m²)
+    const I_m3 = datos.im3Value !== undefined ? parseFloat(datos.im3Value) : 0.30;       // Índice de generación (m³/m²)
     const porcEsponjamiento = datos.porcEsponjamiento !== undefined ? parseFloat(datos.porcEsponjamiento) : 42;
     const F_e = 1 + (porcEsponjamiento / 100); 
     
@@ -164,6 +176,29 @@ function calcularMetricaVolumen(datos) {
     };
 }
 
+// Función genérica para selección de opciones
+function seleccionarOpcion(elemento, inputId) {
+    // Buscar todos los botones en el mismo contenedor y desmarcarlos
+    const contenedor = elemento.parentElement;
+    contenedor.querySelectorAll('.card-selector').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // Activar el botón cliqueado
+    elemento.classList.add('active');
+
+    // Actualizar el valor en el input oculto correspondiente
+    const inputOculto = document.getElementById(inputId);
+    if (inputOculto) {
+        inputOculto.value = elemento.getAttribute('data-value');
+    }
+
+    // Recalcular evidencias
+    calcularEvidenciasEnVivo();
+}
+
+
+
 function calcularEvidenciasEnVivo() {
     // Leer el porcentaje de esponjamiento ingresado (o usar 42 si está vacío)
     const porcIngresado = parseFloat(document.getElementById("fEsponjamiento")?.value);
@@ -177,6 +212,7 @@ function calcularEvidenciasEnVivo() {
         nSotanos: parseInt(document.getElementById("nSotanos")?.value) || 0,
         aSotExt: parseFloat(document.getElementById("aSotExt")?.value) || 0,
         clasificacionTerreno: document.getElementById("clasificacionTerreno")?.value || "0.12",
+        im3Value: document.getElementById("im3_value")?.value || "0.30",
         factorEsponjamiento: factorEsponjamiento,
         porcEsponjamiento: porcEsponjamiento
     };
@@ -402,18 +438,7 @@ function guardarConfiguracion(e) {
 /* ==========================================================================
    FORMULARIO Y SELECCIÓN DE COMPLEJIDAD
    ========================================================================== */
-// Reescritura limpia de selección de complejidad
-function seleccionarComplejidad(elemento) {
-    const botones = document.querySelectorAll('#grupoComplejidad .btn-complejidad');
-    botones.forEach(btn => btn.classList.remove('active'));
 
-    elemento.classList.add('active');
-    const valorAlfa = elemento.getAttribute('data-value');
-    document.getElementById('clasificacionTerreno').value = valorAlfa;
-    
-    // Disparo inmediato de la reactividad
-    calcularEvidenciasEnVivo();
-}
 
 function intentarNuevaInspeccion() {
     comprobarConfiguracionFecha(fechaActual, (configurada) => {
@@ -432,17 +457,29 @@ function mostrarFormulario(idEdit = null) {
     document.getElementById("txtNombre").value = "";
     document.getElementById("txtComentarios").value = "";
     
-    document.getElementById("prevFrente").style.display = "none";
-    document.getElementById("prevFrente").src = "";
-    document.getElementById("prevFrente").closest('.photo-uploader').classList.remove('photo-loaded');
-    document.getElementById("fileFrenteCamara").value = "";
-    document.getElementById("fileFrenteGaleria").value = "";
+    const prevFrente = document.getElementById("prevFrente");
+    if (prevFrente) {
+        prevFrente.style.display = "none";
+        prevFrente.src = "";
+        const uploader = prevFrente.closest('.photo-uploader');
+        if (uploader) uploader.classList.remove('photo-loaded');
+    }
+    const fileFrenteCamara = document.getElementById("fileFrenteCamara");
+    if (fileFrenteCamara) fileFrenteCamara.value = "";
+    const fileFrenteGaleria = document.getElementById("fileFrenteGaleria");
+    if (fileFrenteGaleria) fileFrenteGaleria.value = "";
     
-    document.getElementById("prevRespaldo").style.display = "none";
-    document.getElementById("prevRespaldo").src = "";
-    document.getElementById("prevRespaldo").closest('.photo-uploader').classList.remove('photo-loaded');
-    document.getElementById("fileRespaldoCamara").value = "";
-    document.getElementById("fileRespaldoGaleria").value = "";
+    const prevRespaldo = document.getElementById("prevRespaldo");
+    if (prevRespaldo) {
+        prevRespaldo.style.display = "none";
+        prevRespaldo.src = "";
+        const uploader = prevRespaldo.closest('.photo-uploader');
+        if (uploader) uploader.classList.remove('photo-loaded');
+    }
+    const fileRespaldoCamara = document.getElementById("fileRespaldoCamara");
+    if (fileRespaldoCamara) fileRespaldoCamara.value = "";
+    const fileRespaldoGaleria = document.getElementById("fileRespaldoGaleria");
+    if (fileRespaldoGaleria) fileRespaldoGaleria.value = "";
 
     actualizarDatalistCalles();
 
@@ -464,27 +501,45 @@ function mostrarFormulario(idEdit = null) {
                 document.getElementById("nSotanos").value = r.nSotanos || 0;
                 document.getElementById("aSotExt").value = r.aSotExt || 0;
                 
-                const valorAlfa = r.clasificacionTerreno || "0.12";
+                const valorAlfa = r.clasificacionTerreno || "0.28";
                 document.getElementById("clasificacionTerreno").value = valorAlfa;
-                document.querySelectorAll('#grupoComplejidad .btn-complejidad').forEach(btn => {
+                document.querySelectorAll('#grupoComplejidad .card-selector').forEach(btn => {
                     btn.classList.toggle('active', btn.getAttribute('data-value') === valorAlfa);
                 });
 
+                const valorIm3 = r.im3Value || "0.30";
+                document.getElementById("im3_value").value = valorIm3;
+                document.querySelectorAll('#grupoSistemaEstructural .card-selector').forEach(btn => {
+                    btn.classList.toggle('active', btn.getAttribute('data-value') === valorIm3);
+                });
+
+                const valorBeta = r.porcEsponjamiento !== undefined ? r.porcEsponjamiento.toString() : "42";
                 if (document.getElementById("fEsponjamiento")) {
-                    document.getElementById("fEsponjamiento").value = r.porcEsponjamiento !== undefined ? r.porcEsponjamiento : 42;
+                    document.getElementById("fEsponjamiento").value = valorBeta;
                 }
+                document.querySelectorAll('#grupoEsponjamiento .card-selector').forEach(btn => {
+                    btn.classList.toggle('active', btn.getAttribute('data-value') === valorBeta);
+                });
 
                 document.getElementById("txtComentarios").value = r.comentarios || "";
                 
                 if (r.fotoFrente) {
-                    document.getElementById("prevFrente").src = r.fotoFrente;
-                    document.getElementById("prevFrente").style.display = "block";
-                    document.getElementById("prevFrente").closest('.photo-uploader').classList.add('photo-loaded');
+                    const prevFrente = document.getElementById("prevFrente");
+                    if (prevFrente) {
+                        prevFrente.src = r.fotoFrente;
+                        prevFrente.style.display = "block";
+                        const uploader = prevFrente.closest('.photo-uploader');
+                        if (uploader) uploader.classList.add('photo-loaded');
+                    }
                 }
                 if (r.fotoRespaldo) {
-                    document.getElementById("prevRespaldo").src = r.fotoRespaldo;
-                    document.getElementById("prevRespaldo").style.display = "block";
-                    document.getElementById("prevRespaldo").closest('.photo-uploader').classList.add('photo-loaded');
+                    const prevRespaldo = document.getElementById("prevRespaldo");
+                    if (prevRespaldo) {
+                        prevRespaldo.src = r.fotoRespaldo;
+                        prevRespaldo.style.display = "block";
+                        const uploader = prevRespaldo.closest('.photo-uploader');
+                        if (uploader) uploader.classList.add('photo-loaded');
+                    }
                 }
 
                 calcularEvidenciasEnVivo();
@@ -492,26 +547,43 @@ function mostrarFormulario(idEdit = null) {
         };
     } else {
         document.getElementById("formTitle").innerText = "Nuevo Volumen";
-        document.getElementById("clasificacionTerreno").value = "0.12";
-        document.querySelectorAll('#grupoComplejidad .btn-complejidad').forEach(btn => {
-            btn.classList.toggle('active', btn.getAttribute('data-value') === "0.12");
+        
+        document.getElementById("clasificacionTerreno").value = "0.28";
+        document.querySelectorAll('#grupoComplejidad .card-selector').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-value') === "0.28");
+        });
+
+        document.getElementById("im3_value").value = "0.30";
+        document.querySelectorAll('#grupoSistemaEstructural .card-selector').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-value') === "0.30");
         });
 
         if (document.getElementById("fEsponjamiento")) {
-            document.getElementById("fEsponjamiento").value = 42;
+            document.getElementById("fEsponjamiento").value = "42";
         }
+        document.querySelectorAll('#grupoEsponjamiento .card-selector').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-value') === "42");
+        });
         
         calcularEvidenciasEnVivo();
     }
 
-    document.getElementById("viewMain").classList.remove("active");
-    document.getElementById("viewForm").classList.add("active");
+    const viewMain = document.getElementById("viewMain");
+    if (viewMain) viewMain.classList.remove("active");
+    
+    const viewForm = document.getElementById("viewForm");
+    if (viewForm) viewForm.classList.add("active");
 }
 
 function regresarPrincipal() {
-    document.getElementById("viewForm").classList.remove("active");
-    document.getElementById("viewConfig").classList.remove("active");
-    document.getElementById("viewMain").classList.add("active");
+    const viewForm = document.getElementById("viewForm");
+    if (viewForm) viewForm.classList.remove("active");
+    
+    const viewConfig = document.getElementById("viewConfig");
+    if (viewConfig) viewConfig.classList.remove("active");
+    
+    const viewMain = document.getElementById("viewMain");
+    if (viewMain) viewMain.classList.add("active");
 }
 
 function procesarImagen(input, idPreview) {
@@ -640,13 +712,17 @@ function guardarFormulario(e) {
     const nSotanos = parseInt(document.getElementById("nSotanos").value) || 0;
     const aSotExt = parseFloat(document.getElementById("aSotExt").value) || 0;
     const clasificacionTerreno = document.getElementById("clasificacionTerreno").value;
+    const im3Value = document.getElementById("im3_value").value || "0.30";
     const comentarios = document.getElementById("txtComentarios").value.trim();
     
     const porcIngresado = parseFloat(document.getElementById("fEsponjamiento")?.value);
     const porcEsponjamiento = isNaN(porcIngresado) ? 42 : porcIngresado;
 
-    const fotoFrente = document.getElementById("prevFrente").src.startsWith("data:") ? document.getElementById("prevFrente").src : null;
-    const fotoRespaldo = document.getElementById("prevRespaldo").src.startsWith("data:") ? document.getElementById("prevRespaldo").src : null;
+    const prevFrente = document.getElementById("prevFrente");
+    const fotoFrente = (prevFrente && prevFrente.src.startsWith("data:")) ? prevFrente.src : null;
+    
+    const prevRespaldo = document.getElementById("prevRespaldo");
+    const fotoRespaldo = (prevRespaldo && prevRespaldo.src.startsWith("data:")) ? prevRespaldo.src : null;
 
     const registro = {
         fecha: fechaActual, 
@@ -659,6 +735,7 @@ function guardarFormulario(e) {
         nSotanos,
         aSotExt,
         clasificacionTerreno,
+        im3Value,
         porcEsponjamiento,
         color: "Verde",
         comentarios,
@@ -1116,16 +1193,23 @@ function eliminarTodoElHistorialDB() {
     }
 }
 
-function abrirModal(id) { document.getElementById(id).style.display = "flex"; }
-function cerrarModal(id) { document.getElementById(id).style.display = "none"; }
+function abrirModal(id) { 
+    const el = document.getElementById(id); 
+    if (el) el.style.display = "flex"; 
+}
+function cerrarModal(id) { 
+    const el = document.getElementById(id); 
+    if (el) el.style.display = "none"; 
+}
 function mostrarToast(msg) {
     const toast = document.getElementById("toast");
+    if (!toast) return;
     toast.innerText = msg;
     toast.style.opacity = "1";
     setTimeout(() => toast.style.opacity = "0", 2500);
 }
 
-if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js', { scope: './' })
             .then(reg => console.log('Service Worker registrado:', reg.scope))

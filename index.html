@@ -121,19 +121,21 @@
                 <fieldset class="form-section">
                 <legend class="section-title">Geometría de la Parcela y Edificación</legend>
 
-                <div class="form-group">
-                    <label for="aTerreno">Área total del terreno (m²):</label>
-                    <input type="number" id="aTerreno" name="a_terreno" class="input-control" step="0.01" min="0" placeholder="Ej. 500.00" oninput="calcularEvidenciasEnVivo()" onchange="calcularEvidenciasEnVivo()">
+                <div class="form-group row-2-cols">
+                    <div>
+                        <label for="aTerreno">Área de parcela (m²):</label>
+                        <input type="number" id="aTerreno" name="a_terreno" class="input-control" step="0.01" min="0" placeholder="Ej. 500.00" oninput="calcularEvidenciasEnVivo()" onchange="calcularEvidenciasEnVivo()">
+                    </div>
+                    <div>
+                        <label for="aHuella">Área de huella (m²):</label>
+                        <input type="number" id="aHuella" name="a_huella" class="input-control" step="0.01" min="0" placeholder="Ej. 200.00" oninput="calcularEvidenciasEnVivo()" onchange="calcularEvidenciasEnVivo()">
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="aHuella">Área de ocupación en planta (m²):</label>
-                    <input type="number" id="aHuella" name="a_huella" class="input-control" step="0.01" min="0" placeholder="Ej. 200.00" oninput="calcularEvidenciasEnVivo()" onchange="calcularEvidenciasEnVivo()">
-                </div>
 
                 <div class="form-group row-2-cols">
                     <div>
-                    <label for="nPisos">Pisos sobre nivel:</label>
+                    <label for="nPisos">Pisos sobre rasante:</label>
                     <input type="number" id="nPisos" name="n_pisos" class="input-control" min="0" value="0" oninput="calcularEvidenciasEnVivo()" onchange="calcularEvidenciasEnVivo()">
                     </div>
                     <div>
@@ -153,48 +155,96 @@
                 <legend class="section-title">Clasificación del Terreno Exterior</legend>
 
                 <div class="form-group">
-                    <label>Complejidad del terreno libre:</label>
-                    
                     <!-- Input oculto para preservar la integración con app.js -->
-                    <input type="hidden" id="clasificacionTerreno" name="clasificacion_terreno" value="0.12">
+                    <input type="hidden" id="clasificacionTerreno" name="clasificacion_terreno" value="0.28">
+  
 
+                    <label class="form-label font-weight-bold mt-3 d-block">Sistema Estructural de la edificación:</label>
+
+                        <div class="selector-column" id="grupoSistemaEstructural">
+                            <button type="button" class="card-selector card-blue active" data-value="0.30" onclick="seleccionarOpcion(this, 'im3_value')">
+                                <span class="badge-blue">φ = 0.30</span>
+                                <strong>Aporticado Tradicional</strong>
+                                <small>Vigas, columnas, losas aligeradas y mampostería</small>
+                            </button>
+
+                            <button type="button" class="card-selector card-blue" data-value="0.40" onclick="seleccionarOpcion(this, 'im3_value')">
+                                <span class="badge-blue">φ = 0.40</span>
+                                <strong>Monolítico / Tipo Túnel</strong>
+                                <small>Muros de carga y losas macizas de concreto armado</small>
+                            </button>
+                        </div>
+
+                    <!-- Campo oculto para almacenar la selección (0.30 o 0.40) -->
+                    <input type="hidden" id="im3_value" value="0.30">
+                    
+
+                    <label>
+                        Complejidad del terreno libre:
+                        <span class="tooltip-container">
+                            <span class="tooltip-icon">ℹ️</span>
+                            <span class="tooltip-content">Factor que penaliza las dificultades y obstáculos presentes en el terreno exterior, como pavimentos, estructuras o desniveles.</span>
+                        </span>
+                    </label>
                     <!-- Selector Visual con opciones en un solo toque -->
-                    <div class="selector-complejidad" id="grupoComplejidad">
-                        <button type="button" class="btn-complejidad active" data-value="0.12" onclick="seleccionarComplejidad(this)">
-                            <span class="badge-alfa">α = 0.12</span>
+                    <div class="selector-grid" id="grupoComplejidad">
+                        <button type="button" class="card-selector card-green" data-value="0.12" onclick="seleccionarOpcion(this, 'clasificacionTerreno')">
+                            <span class="badge-green">α = 0.12</span>
                             <strong>Liviano</strong>
                             <small>Patios planos, aceras, grama</small>
                         </button>
 
-                        <button type="button" class="btn-complejidad" data-value="0.20" onclick="seleccionarComplejidad(this)">
-                            <span class="badge-alfa">α = 0.20</span>
+                        <button type="button" class="card-selector card-green" data-value="0.20" onclick="seleccionarOpcion(this, 'clasificacionTerreno')">
+                            <span class="badge-green">α = 0.20</span>
                             <strong>Moderado</strong>
                             <small>Canchas, brocales, asfalto</small>
                         </button>
 
-                        <button type="button" class="btn-complejidad" data-value="0.28" onclick="seleccionarComplejidad(this)">
-                            <span class="badge-alfa">α = 0.28</span>
+                        <button type="button" class="card-selector card-green active" data-value="0.28" onclick="seleccionarOpcion(this, 'clasificacionTerreno')">
+                            <span class="badge-green">α = 0.28</span>
                             <strong>Pesado</strong>
                             <small>Piscinas, sótano ext., muros altos</small>
                         </button>
 
-                        <button type="button" class="btn-complejidad" data-value="0.30" onclick="seleccionarComplejidad(this)">
-                            <span class="badge-alfa">α = 0.30</span>
+                        <button type="button" class="card-selector card-green" data-value="0.30" onclick="seleccionarOpcion(this, 'clasificacionTerreno')">
+                            <span class="badge-green">α = 0.30</span>
                             <strong>Pesado Superior</strong>
                             <small>Estructuras de gran envergadura</small>
                         </button>
                     </div>
                 </div>
 
-                <div class="form-group">
-                <label for="fEsponjamiento">Factor / % Esponjamiento:</label>
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    <input type="number" id="fEsponjamiento" name="f_esponjamiento" class="input-control" step="1" min="0" max="100" value="42" oninput="calcularEvidenciasEnVivo()" onchange="calcularEvidenciasEnVivo()">
-                    <span>%</span>
-                </div>
-                </div>
 
+                <!-- FACTOR / % ESPONJAMIENTO -->
+                <!-- Título de la sección arriba (ocupa todo el ancho) -->
+                <label class="label-titulo-seccion">Factor / % Esponjamiento:</label>
 
+                <!-- Fila horizontal con las 3 tarjetas -->
+                <div class="selector-grid" id="grupoEsponjamiento">
+                    
+                    <button type="button" class="card-selector card-red" data-value="35" onclick="seleccionarOpcion(this, 'fEsponjamiento')">
+                        <span class="badge-red">β = 35%</span>
+                        <strong>Liviano</strong>
+                        <small>Mampostería, bloques de arcilla, acabados</small>
+                    </button>
+
+                    <button type="button" class="card-selector card-red active" data-value="42" onclick="seleccionarOpcion(this, 'fEsponjamiento')">
+                        <span class="badge-red">β = 42%</span>
+                        <strong>Estándar</strong>
+                        <small>Concreto y mampostería heterogénea</small>
+                    </button>
+
+                    <button type="button" class="card-selector card-red" data-value="50" onclick="seleccionarOpcion(this, 'fEsponjamiento')">
+                        <span class="badge-red">β = 50%</span>
+                        <strong>Pesado</strong>
+                        <small>Fragmentos grandes de concreto denso</small>
+                    </button>
+
+                </div>
+                
+                <input type="hidden" id="fEsponjamiento" value="42">
+             
+            
                 <!-- EVIDENCIAS DE CÁLCULOS -->
                 <fieldset class="fieldset-calc" style="border: 1px dashed #1f4e79; border-radius: 8px; padding: 12px; margin-top: 15px; background-color: #f9fbfd;">
                 <legend style="color: #1f4e79; font-weight: bold; font-size: 0.9rem; padding: 0 6px;">
@@ -225,29 +275,6 @@
                         </button>
                     </div>
                 </div>
-
-                <!-- FOTO FACHADA -->
-                <div class="form-group" style="display: none;">
-                    <label>Foto de la Fachada</label>
-                    <div class="photo-uploader" onclick="abrirMenuFoto('Frente')">
-                        <span>📸 Capturar/Elegir Fachada</span>
-                        <input type="file" id="fileFrenteCamara" accept="image/*" capture="environment" style="display:none;" onchange="procesarImagen(this, 'prevFrente')" onclick="event.stopPropagation()">
-                        <input type="file" id="fileFrenteGaleria" accept="image/*" style="display:none;" onchange="procesarImagen(this, 'prevFrente')" onclick="event.stopPropagation()">
-                        <img id="prevFrente" class="preview-img" alt="Fachada">
-                    </div>
-                </div> 
-
-                <!-- FOTO CERTIFICADO -->
-                <div class="form-group" style="display: none;">
-                    <label>Foto de Detalle</label>
-                    <div class="photo-uploader" onclick="abrirMenuFoto('Respaldo')">
-                        <span>📸 Capturar/Elegir Detalle</span>
-                        <input type="file" id="fileRespaldoCamara" accept="image/*" capture="environment" style="display:none;" onchange="procesarImagen(this, 'prevRespaldo')" onclick="event.stopPropagation()">
-                        <input type="file" id="fileRespaldoGaleria" accept="image/*" style="display:none;" onchange="procesarImagen(this, 'prevRespaldo')" onclick="event.stopPropagation()">
-                        <img id="prevRespaldo" class="preview-img" alt="Certificado">
-                    </div>
-                </div>
-
 
                 <div style="display: flex; gap: 10px; margin-top: 15px;">
                     <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="regresarPrincipal()">Cancelar</button>

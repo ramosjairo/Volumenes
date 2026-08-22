@@ -151,75 +151,130 @@
 }
 
 
+/* ==========================================
+   SELECTORES UNIFICADOS (TARJETAS)
+   ========================================== */
 
-.selector-complejidad {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 8px;
-    margin-top: 6px;
-}
-
-.btn-complejidad {
-    background-color: #f8f9fa;
+/* Componente base de tarjeta */
+.card-selector {
+    background-color: #ffffff;
     border: 2px solid #e0e0e0;
     border-radius: 8px;
-    padding: 8px 10px;
+    padding: 10px;
     text-align: left;
     cursor: pointer;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    align-items: flex-start;
+    gap: 4px;
     transition: all 0.2s ease;
+    box-sizing: border-box;
+    width: 100%;
 }
 
-.btn-complejidad:hover {
-    border-color: #2e7d32;
-    background-color: #f1f8e9;
-}
-
-/* Estado seleccionado (Verde) */
-.btn-complejidad.active {
-    border-color: #2e7d32;
-    background-color: #e8f5e9;
-    box-shadow: 0 2px 4px rgba(46, 125, 50, 0.15);
-}
-
-.badge-alfa {
-    font-size: 0.75rem;
-    font-weight: bold;
-    color: #2e7d32;
-    background: #d0e7d2;
-    padding: 2px 6px;
-    border-radius: 4px;
-    align-self: flex-start;
-}
-
-.btn-complejidad strong {
-    font-size: 0.9rem;
+.card-selector strong {
+    font-size: 0.95rem;
     color: #2c3e50;
+    margin-bottom: 2px;
 }
 
-.btn-complejidad small {
-    font-size: 0.75rem;
+.card-selector small {
+    font-size: 0.8rem;
     color: #666;
-    line-height: 1.1;
+    line-height: 1.2;
 }
 
-/* Layout para colocar 2 campos lado a lado */
-.form-row-2col {
+/* Layouts */
+.selector-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    align-items: start;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    margin-top: 6px;
+    width: 100%;
 }
 
-/* Ajuste móvil para pantallas muy estrechas (opcional) */
-@media (max-width: 360px) {
-    .form-row-2col {
-        grid-template-columns: 1fr;
-        gap: 8px;
-    }
+.selector-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 12px;
 }
+
+/* Colores: Azul (Sistema Estructural) */
+.card-blue:hover { border-color: #90caf9; background-color: #f4f8fb; }
+.card-blue.active { border-color: #1976d2 !important; background-color: #f4f8fb !important; box-shadow: 0 2px 6px rgba(25, 118, 210, 0.15); }
+.badge-blue { background-color: #e3f2fd; color: #1565c0; padding: 2px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; border: 1px solid #bbdefb; margin-bottom: 4px; }
+
+/* Colores: Verde (Complejidad Terreno) */
+.card-green:hover { border-color: #81c784; background-color: #f1f8e9; }
+.card-green.active { border-color: #2e7d32 !important; background-color: #e8f5e9 !important; box-shadow: 0 2px 4px rgba(46, 125, 50, 0.15); }
+.badge-green { background-color: #d0e7d2; color: #2e7d32; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; border: 1px solid #a5d6a7; align-self: flex-start; }
+
+/* Colores: Rojo (Esponjamiento) */
+.card-red:hover { border-color: #e57373; background-color: #ffebee; }
+.card-red.active { border-color: #d32f2f !important; background-color: #ffebee !important; box-shadow: 0 2px 4px rgba(211, 47, 47, 0.15); }
+.badge-red { background-color: #ffebee; color: #c62828; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; border: 1px solid #ffcdd2; align-self: flex-start; }
+
+/* Títulos de sección */
+.label-titulo-seccion {
+    display: block !important;
+    width: 100% !important;
+    margin-top: 15px;
+    margin-bottom: 8px;
+    clear: both;
+}
+
+/* ==========================================
+   TOOLTIP ICON
+   ========================================== */
+.tooltip-container {
+    position: relative;
+    display: inline-block;
+    margin-left: 6px;
+    cursor: help;
+}
+
+.tooltip-icon {
+    font-size: 0.9rem;
+    color: #2b569a;
+}
+
+.tooltip-content {
+    visibility: hidden;
+    width: 220px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px 10px;
+    position: absolute;
+    z-index: 10;
+    bottom: 125%; 
+    left: 50%;
+    margin-left: -110px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 0.75rem;
+    font-weight: normal;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.tooltip-container:hover .tooltip-content {
+    visibility: visible;
+    opacity: 1;
+}
+
+.tooltip-content::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+}
+
 
 
 /* ==========================================
